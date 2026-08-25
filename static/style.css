@@ -1,0 +1,700 @@
+/* ========================================== HOW TO PLAY MODAL ========================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgb(242, 154, 46);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 1;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  visibility: visible;
+}
+
+.modal-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.modal-card {
+  position: relative;
+  background-color: #ffea96; /* Cream background */
+  color: #0a192f; /* Navy text */
+  border: 1px solid #000000; /* 1px solid black border */
+  border-radius: 12px;
+  width: 90%;
+  max-width: 520px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(0) scale(1);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.hidden .modal-card {
+  transform: translateY(-20px);
+}
+
+.modal-card h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 1.6rem;
+  color: #0a192f;
+  border-bottom: 1px solid rgba(10, 25, 47, 0.15);
+  padding-bottom: 10px;
+}
+
+/* Close 'X' Button in Top Right */
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  font-weight: bold;
+  color: #0a192f;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.close-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+
+.instruction-block {
+  margin-bottom: 16px;
+}
+
+.instruction-block h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.05rem;
+  color: #0a192f;
+}
+
+.instruction-block p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  opacity: 0.9;
+}
+
+/* Indicator Dots */
+.legend {
+  list-style: none;
+  padding-left: 0;
+  margin: 6px 0 0 0;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.legend .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.legend .dot.green { background-color: #28a745; }
+.legend .dot.yellow { background-color: #ffc107; }
+.legend .dot.red { background-color: #dc3545; }
+
+/* Got It Button */
+.modal-action-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #fff5a6;
+  color: #09003d;
+  border: 1px solid #000000;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.modal-action-btn:hover {
+  background-color: #ffffb1;
+}
+
+/* ========================================== APP HEADER STYLING ========================================== */ 
+.app-header { 
+  width: 100%; 
+  max-width: 1000px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  margin: 0 auto 36px auto; 
+  padding: 20px 0; 
+  border-bottom: 2px solid #080064; 
+} 
+
+/* Back to Hub Link */ 
+.app-header .home-link { 
+  color: #0a192f; 
+  text-decoration: none; 
+  font-size: 1.05rem; 
+  font-weight: 600; 
+  /* SPED UP: Snappy but clean transition */
+  transition: color 0.2s linear; 
+} 
+
+.app-header .home-link:hover { 
+  color: #1d2d44; 
+  text-decoration: underline; 
+} 
+
+/* Game Title */ 
+.app-header .game-title { 
+  font-size: 1.5rem; 
+  font-weight: 700; 
+  letter-spacing: 0.5px; 
+  text-transform: uppercase; 
+  color: #0a192f; 
+  margin: 0; 
+} 
+
+body { 
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+  background-color: #ffea96; 
+  color: #0a192f; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  padding: 24px; 
+  margin: 0; 
+} 
+
+h1 { 
+  margin-bottom: 8px; 
+  font-size: 2.2rem; 
+  color: #0a192f; 
+} 
+
+p { 
+  color: #1d2d44; 
+  font-size: 1.5rem; 
+  margin-bottom: 24px; 
+} 
+
+.game-container { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  width: 100%; 
+  max-width: 1200px; 
+} 
+
+.sorting-phase { 
+  /* SPED UP: Phase transitions take less time now */
+  transition: transform 0.6s linear; 
+} 
+
+.scale-indicators {
+  text-align: center;
+  margin: 0 auto 20px auto;
+  width: 100%;
+}
+
+.scale-indicators strong {
+  display: inline-block;
+  color: #0a192f;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  font-size: 1.4rem;
+}
+
+#low-scale { 
+  margin-right: auto; 
+} 
+
+#high-scale { 
+  margin-left: auto; 
+} 
+
+/* Current Image Display Area (Stage Area) */ 
+.stage-area { 
+  background-color: #f9e9c1; 
+  border: 2px solid #0a192f; 
+  border-radius: 12px; 
+  padding: 24px; 
+  text-align: center; 
+  margin-bottom: 36px; 
+  width: 380px; 
+  box-shadow: 0 6px 16px rgba(10, 25, 47, 0.08); 
+  /* SPED UP: Stage clears quickly without dragging out */
+  transition: transform 0.4s linear, opacity 0.4s linear; 
+  transform: scale(1); 
+  opacity: 1; 
+} 
+
+.hidden-stage { 
+  transform: scale(0.9); /* CHANGED: Avoids extreme zooming out */
+  opacity: 0; 
+  pointer-events: none; 
+} 
+
+.card-img { 
+  width: 160px; 
+  height: 160px; 
+  object-fit: cover; 
+  border-radius: 10px; 
+  border: 3px solid #0a192f; 
+  cursor: grab; 
+} 
+
+.card-img:active { 
+  cursor: grabbing; 
+} 
+
+/* Container for toasts positioning relative to score */ 
+.score-container { 
+  position: relative; 
+} 
+
+.toast-container { 
+  position: absolute; 
+  top: -40px; 
+  right: 10px; 
+  pointer-events: none; 
+  display: flex; 
+  flex-direction: column-reverse; 
+  gap: 6px; 
+  z-index: 100; 
+} 
+
+/* Single Toast Item */ 
+.score-toast { 
+  background-color: #28a745; 
+  color: #ffffff; 
+  font-size: 0.95rem; 
+  font-weight: bold; 
+  padding: 6px 14px; 
+  border-radius: 20px; 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); 
+  white-space: nowrap; 
+  /* SPED UP: Toast indicator feels much more rewarding */
+  animation: floatUpAndFade 1.2s linear forwards; 
+} 
+
+/* Animated Streak Toast Accent */ 
+.score-toast.streak { 
+  background-color: #ff6b35 !important; 
+  color: #ffffff !important; 
+  font-size: 1.05rem; 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); 
+} 
+
+/* Completion Toast Highlight */ 
+.score-toast.gold { 
+  background-color: #ffc107; 
+  color: #0a192f; 
+  font-size: 1.1rem; 
+} 
+
+/* SPED UP: Fast, clean translation without jerky bezier easing */
+@keyframes floatUpAndFade { 
+  0% { 
+    opacity: 0; 
+    transform: translateY(10px); 
+  } 
+  15% { 
+    opacity: 1; 
+    transform: translateY(0); 
+  } 
+  80% { 
+    opacity: 1; 
+    transform: translateY(-2px); 
+  } 
+  100% { 
+    opacity: 0; 
+    transform: translateY(-10px); 
+  } 
+} 
+
+#score-display { 
+  font-weight: bold; 
+} 
+
+/* Container that holds the scrollbar */
+.board-container { 
+  display: flex; 
+  align-items: center; 
+  background-color: #ffedbc; 
+  padding: 28px; 
+  overflow-x: auto; /* Handles horizontal scrolling */
+  overflow-y: hidden; 
+  border: 2px solid #0a192f; 
+  border-radius: 16px; 
+  width: 100%; 
+  min-height: 210px; 
+  box-sizing: border-box; 
+  box-shadow: 0 8px 20px rgba(10, 25, 47, 0.1); 
+  max-width: 1200px; 
+} 
+
+/* Inner board element */
+#board { 
+  display: flex; 
+  flex-wrap: nowrap !important; 
+  align-items: center; 
+  gap: 12px; 
+  padding: 16px; 
+  /* DO NOT use justify-content: center here */
+  margin: auto; /* Centers the board when short, aligns left when overflowing */
+  min-width: max-content; /* Guarantees items never squeeze together */
+  box-sizing: border-box; 
+}
+
+.board-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.board-container {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.sort-float-up { 
+  transform: translateY(-320px); 
+  /* SPED UP */
+  transition: transform 0.5s linear; 
+} 
+
+/* Slot containers */ 
+.slot { 
+  flex-shrink: 0; 
+  width: 110px; 
+  height: 110px; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  box-sizing: border-box; 
+} 
+
+/* Drop slots & drop zones shrink smoothly horizontally */ 
+.slot.drop-slot { 
+  width: 110px; 
+  height: 110px; 
+  overflow: hidden; 
+  box-sizing: border-box; 
+  flex-shrink: 0; 
+  /* SPED UP: Board shuffles into place instantly but smoothly */
+  transition: width 0.4s linear, min-width 0.4s linear, margin 0.4s linear, padding 0.4s linear, opacity 0.4s linear; 
+} 
+
+.drop-zone { 
+  width: 110px; 
+  height: 110px; 
+  border: 2px dashed #000453; 
+  border-radius: 10px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  cursor: pointer; 
+  color: #0a192f; 
+  font-size: 13px; 
+  font-weight: bold; 
+  text-align: center; 
+  background-color: #ffeab4; 
+  box-sizing: border-box; 
+  padding: 6px; 
+  overflow: hidden; 
+  white-space: nowrap; 
+  /* ADJUSTED: Glow/pulse cycle is 3s (not hyper active, but visible) */
+  animation: dropZonePulse 3s infinite ease-in-out; 
+  transition: width 0.3s linear, min-width 0.3s linear, margin 0.3s linear, padding 0.3s linear, opacity 0.3s linear; 
+} 
+
+.slot.drop-slot.collapsed, .drop-zone.collapsed { 
+  width: 0 !important; 
+  min-width: 0 !important; 
+  padding: 0 !important; 
+  margin-left: -6px !important; 
+  margin-right: -6px !important; 
+  border-width: 0 !important; 
+  opacity: 0; 
+  pointer-events: none; 
+} 
+
+.drop-zone:hover { 
+  background-color: #f7fcbb; 
+  transform: scale(1.00); 
+} 
+
+/* Board Tile Element */ 
+.tile { 
+  width: 110px; 
+  height: 110px; 
+  border-radius: 8px; 
+  background-color: #f7f3e9; 
+  border: 3px solid #0a192f; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  box-shadow: 0 4px 8px rgba(10, 25, 47, 0.15); 
+  position: relative; 
+  box-sizing: border-box; 
+  /* SPED UP: Snappy responsive hover/active feedbacks */
+  transition: border-color 0.2s linear, background-color 0.2s linear, box-shadow 0.2s linear, transform 0.2s linear; 
+  user-select: none; 
+} 
+
+.tile img { 
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover; 
+  border-radius: 5px; 
+  pointer-events: none; 
+} 
+
+/* Interactive Tile States */ 
+.selectable { 
+  cursor: pointer; 
+} 
+
+.selectable:hover { 
+  transform: translateY(-2px) scale(1.01); 
+  box-shadow: 0 5px 12px rgba(10, 25, 47, 0.18); 
+} 
+
+.selectable:active { 
+  transform: translateY(0) scale(1); 
+} 
+
+.selected { 
+  outline: 4px solid #0a192f; 
+  transform: translateY(-3px) scale(1.02); 
+  box-shadow: 0 6px 14px rgba(10, 25, 47, 0.22); 
+} 
+
+.tile.drag-over { 
+  border: 3px dashed #0a192f !important; 
+  background-color: #f7de91 !important; 
+} 
+
+/* Buttons */ 
+.button-group { 
+  display: flex; 
+  justify-content: center; 
+  margin-top: 24px; 
+} 
+
+.submit-btn { 
+  background-color: #fffeae; 
+  color: #000e66; 
+  border: 2px solid #0a192f; 
+  padding: 16px 40px; 
+  font-size: 18px; 
+  font-weight: bold; 
+  border-radius: 8px; 
+  cursor: pointer; 
+  margin-top: 24px; 
+  transition: all 0.2s linear; 
+} 
+
+.submit-btn:hover { 
+  background-color: #fff1cd; 
+  color: #0a192f; 
+} 
+
+.submit-btn:disabled { 
+  background-color: #e5dec9; 
+  color: #a09a8e; 
+  border-color: #e5dec9; 
+  cursor: not-allowed; 
+} 
+
+.restart-btn { 
+  background-color: #28a745 !important; 
+  color: #ffffff !important; 
+} 
+
+.restart-btn:hover { 
+  background-color: #218838 !important; 
+} 
+
+#selected-info { 
+  font-size: 16px; 
+  font-weight: 600; 
+  color: #0a192f; 
+} 
+
+/* Correctness Feedback */ 
+.correct { 
+  border: 5px solid #28a745 !important; 
+  background-color: rgba(40, 167, 69, 0.15) !important; 
+} 
+
+.one-away { 
+  border: 5px solid #ffc107 !important; 
+  background-color: rgba(255, 193, 7, 0.25) !important; 
+}
+
+.incorrect { 
+  border: 5px solid #dc3545 !important; 
+  background-color: rgba(220, 53, 69, 0.15) !important; 
+} 
+
+.locked { 
+  cursor: not-allowed !important; 
+  opacity: 0.85; 
+} 
+
+.hidden { 
+  display: none !important; 
+} 
+
+/* Ensure modal overlay can animate opacity when toggling visibility.
+   The generic .hidden utility sets display:none which prevents transitions
+   on elements that rely on opacity/visibility changes (like the modal).
+   This override preserves layout for the modal overlay so its fade works. */
+.modal-overlay.hidden {
+  display: flex !important;
+}
+
+.feedback-msg { 
+  text-align: center; 
+  margin-top: 20px; 
+  font-size: 18px; 
+  font-weight: bold; 
+  color: #0a192f; 
+  min-height: 28px; 
+  transition: opacity 0.2s linear; 
+} 
+
+@keyframes dropZonePulse { 
+  0%, 100% { border-color: #0a192f; } 
+  50% { border-color: #1d2d44; } 
+} 
+
+/* ========================================== PLACEMENT ANIMATIONS ========================================== */ 
+
+/* SPED UP: Fades down rapidly (0.3s) so placement actions register immediately */
+.tile.just-placed { 
+  animation: tilePlacementDrop 0.3s linear forwards; 
+} 
+
+/* SPED UP: Snappy slot appearance */
+.slot.drop-slot.expanding, .drop-zone.expanding { 
+  animation: expandOut 0.3s linear forwards; 
+} 
+
+@keyframes expandOut { 
+  0% { 
+    width: 0; 
+    min-width: 0; 
+    padding: 0; 
+    margin: 0; 
+    opacity: 0; 
+  } 
+  100% { 
+    width: 110px; 
+    min-width: 110px; 
+    padding: 6px; 
+    margin: 0; 
+    opacity: 1; 
+  } 
+} 
+
+.tile.just-locked { 
+  animation: none; 
+} 
+
+/* SPED UP: Quick crossfade swap */
+.tile.swapping { 
+  animation: tileSwap 0.3s linear; 
+} 
+
+@keyframes tileSwap { 
+  0% { transform: scale(1); opacity: 1; } 
+  50% { opacity: 0.4; } 
+  100% { transform: scale(1); opacity: 1; } 
+} 
+
+@keyframes tilePlacementDrop { 
+  0% { 
+    transform: translateY(-10px); 
+    opacity: 0; 
+  } 
+  100% { 
+    transform: translateY(0); 
+    opacity: 1; 
+  } 
+}
+
+/* ========================================== MODE SELECTION ========================================== */
+.mode-select-screen {
+  text-align: center;
+  background: rgba(254, 244, 175, 0.95);
+  padding: 30px 20px;
+  border-radius: 12px;
+  border: 1px solid black;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  margin: 20px auto;
+  max-width: 500px;
+}
+
+.mode-select-screen h2 {
+  margin-top: 0;
+  color: #001940;
+}
+
+.mode-buttons {
+  display: flex;
+  gap: 16px;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.mode-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 12px;
+  background-color: #ffea96;
+  color: #13004c;
+  border: 1px solid black;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.mode-btn strong {
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+}
+
+.mode-btn span {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.mode-btn:hover {
+  background-color: #fbff8a;
+  transform: translateY(-2px);
+}

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sneurt</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div id="how-to-play-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <button id="close-modal-btn" class="close-btn" aria-label="Close">&times;</button>
+      <h2>How to Play</h2>
+      
+      <div class="modal-body">
+        <div class="instruction-block">
+          <h3>1. Placement Phase</h3>
+          <p>Look at the target image and place it onto the board where you think it fits along the activation gradient.</p>
+        </div>
+
+        <div class="instruction-block">
+          <h3>2. Sorting Phase</h3>
+          <p>Click or drag unlocked tiles to swap their positions into the correct sequence.</p>
+        </div>
+
+        <div class="instruction-block">
+          <h3>3. Tile Indicators</h3>
+          <ul class="legend">
+            <li><span class="dot green"></span> <strong>Green:</strong> Tile is in the correct spot and locked!</li>
+            <li><span class="dot yellow"></span> <strong>Yellow:</strong> Tile is exactly 1 spot away from its spot.</li>
+            <li><span class="dot red"></span> <strong>Red:</strong> Tile is in the wrong position.</li>
+          </ul>
+        </div>
+
+        <div class="instruction-block">
+          <h3>4. Direction & Assistance</h3>
+          <p>The game automatically locks sequence direction (Low → High or High → Low) based on your first evaluations. Struggling? <em>Synaptic Assist</em> will step in to help!</p>
+        </div>
+      </div>
+
+      <button id="got-it-btn" class="modal-action-btn">Got It!</button>
+    </div>
+  </div>
+    <header class="app-header">
+      <a href="../index.html" class="home-link">← Back to Hub</a>
+      <h1 class="game-title">Sneurt</h1>
+    </header>
+
+    <div class="score-container">
+      <span id="score-display" class="score-badge">Score: 0</span>
+      <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <p class="scale-indicators">
+      <strong id="low-scale">↔ Activation Scale</strong>
+    </p>
+    <div id="mode-select-screen" class="mode-select-screen">
+      <h2>Choose Game Mode</h2>
+      <p></p>
+      <div class="mode-buttons">
+        <button id="full-mode-btn" class="mode-btn">
+          <strong>Full Game</strong>
+          <span>Place cards sequentially, then sort</span>
+        </button>
+        <button id="direct-sort-btn" class="mode-btn">
+          <strong>Direct Sort</strong>
+          <span>Skip placement & sort all tiles immediately</span>
+        </button>
+      </div>
+    </div>
+    <div class="game-container">
+      <div id="stage-area" class="stage-area">
+        <h3>Current Image to Place</h3>
+        <img
+          id="current-img"
+          class="card-img"
+          src=""
+          alt="Current Image"
+          draggable="true"
+        />
+        <div
+          id="stage-activation"
+          style="font-size: 12px; color: #011551; margin-top: 5px"
+        >
+          Drag image or click a slot below
+        </div>
+      </div>
+      <div class="sorting-phase">
+        <div class="board-container">
+            <div id="board"></div>
+        </div>
+
+        <div class="button-group">
+            <button id="submit-btn" class="submit-btn hidden">Submit</button>
+            <button id="restart-btn" class="submit-btn restart-btn hidden">
+            Play Again
+            </button>
+        </div>
+        <div id="feedback" class="feedback-msg"></div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+    <script src="https://unpkg.com"></script>
+
+  </body>
+</html>
