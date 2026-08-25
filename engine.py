@@ -1,13 +1,20 @@
 from flask import Flask, render_template
 from skimage.metrics import structural_similarity
+import numpy as np
+import 
 
 app = Flask(__name__)
 
-# 2. Define the route (the web address)
 @app.route("/")
 def home():
     return render_template('switch.html')
 
-# 4. Start the server
+@app.route('/send_images')
+def send():
+    neuron_num = np.random.randint(1, 33)
+
+
+    
+
 if __name__ == "__main__":
     app.run(debug=True)
