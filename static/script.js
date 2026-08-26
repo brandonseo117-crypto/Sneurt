@@ -2,6 +2,10 @@ const howToPlayModal = document.getElementById('how-to-play-modal');
 const closeModalBtn = document.getElementById('close-modal-btn');
 const gotItBtn = document.getElementById('got-it-btn');
 
+function getImages() {
+    fetch('http://')
+}
+
 function openHowToPlayModal() {
     if (howToPlayModal) {
         howToPlayModal.classList.remove('hidden');
