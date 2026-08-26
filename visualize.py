@@ -38,5 +38,3 @@ for idx, file_path in enumerate(all_imgs):
     object_iterable.append(d)
 
 final_payload = {str(idx+1): payload for idx, payload in enumerate(object_iterable)}
-
-pprint(final_payload)

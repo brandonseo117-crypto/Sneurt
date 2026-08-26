@@ -3,19 +3,20 @@ const closeModalBtn = document.getElementById('close-modal-btn');
 const gotItBtn = document.getElementById('got-it-btn');
 
 async function getImages() {
-    const url = '/api/images'
+    const url = '/api/images';
     try {
         const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`Response status: ${response.status}`);
         }
 
-        const result = await response.json()
-        console.log(result)
-    }   
-    catch (error) {
+        const result = await response.json();
+        console.log(result, typeof result);
+        return [...result];
+    } catch (error) {
         console.error(error.message);
-    };
+        return null;
+    }
 }
 
 function openHowToPlayModal() {
@@ -45,30 +46,10 @@ if (howToPlayModal) {
 
 // Trigger initial fade-in smoothly when DOM loads
 window.addEventListener('DOMContentLoaded', () => {
-    // Brief frame delay ensures initial render registers before transition begins
     requestAnimationFrame(() => {
         openHowToPlayModal();
     });
 });
-
-// Sample Data: 8 items with true relative activation values (0 to 100)
-function createDataset(neuronnum, totalItems, stepN) {
-    const dataset = []
-    for (let i =0; i<totalItems; i++){
-        const ImageNumber = i * stepN;
-        const paddedImg = String(ImageNumber).padStart(4, '0');
-        const imagePath = `../sneurt/imagesforsorting/images_190923_neuron${neuronnum}/image${paddedImg}.jpg`;
-        const item = {
-            id: i,
-            val: totalItems - i,
-            img: imagePath
-        };
-        dataset.push(item);
-    };
-    return dataset;
-};
-
-const DATA_SET = createDataset(Math.floor(Math.random() * 32), 6, 5);
 
 // Helper function: Fisher-Yates Shuffle
 function shuffle(array) {
@@ -116,8 +97,8 @@ const modeSelectScreen = document.getElementById('mode-select-screen');
 const fullModeBtn = document.getElementById('full-mode-btn');
 const directSortBtn = document.getElementById('direct-sort-btn');
 
-fullModeBtn.addEventListener('click', () => startGame("FULL"));
-directSortBtn.addEventListener('click', () => startGame("DIRECT_SORT"));
+if (fullModeBtn) fullModeBtn.addEventListener('click', () => startGame("FULL"));
+if (directSortBtn) directSortBtn.addEventListener('click', () => startGame("DIRECT_SORT"));
 
 // ==========================================
 // UI & TOAST NOTIFICATIONS
@@ -152,7 +133,8 @@ function showToast(message, isSpecial = false) {
 
 function renderStageCard() {
     if (currentItem && currentImgEl) {
-        currentImgEl.src = currentItem.img;
+        // Updated to use img_path key
+        currentImgEl.src = currentItem.img_path;
         currentImgEl.style.opacity = '1';
     }
 }
@@ -178,41 +160,45 @@ function initGame() {
     if (stageArea) stageArea.classList.remove('hidden-stage');
 
     // Show mode screen, hide gameplay elements initially
-    modeSelectScreen.classList.remove('hidden');
-    stageArea.classList.add('hidden');
-    boardContainer.classList.add('hidden');
-    submitBtn.classList.add('hidden');
+    if (modeSelectScreen) modeSelectScreen.classList.remove('hidden');
+    if (stageArea) stageArea.classList.add('hidden');
+    if (boardContainer) boardContainer.classList.add('hidden');
+    if (submitBtn) submitBtn.classList.add('hidden');
     if (restartBtn) restartBtn.classList.add('hidden');
-    feedbackEl.innerText = "";
+    if (feedbackEl) feedbackEl.innerText = "";
 }
 
-function startGame(selectedMode) {
+async function startGame(selectedMode) {
+    const DATA_SET = await getImages();
+    if (!DATA_SET || DATA_SET.length === 0) {
+        if (feedbackEl) feedbackEl.innerText = "Failed to load image data.";
+        return;
+    }
+
     gameMode = selectedMode;
-    modeSelectScreen.classList.add('hidden');
+    if (modeSelectScreen) modeSelectScreen.classList.add('hidden');
 
     if (gameMode === "FULL") {
-        // Standard placement setup
         phase = "PLACEMENT";
         pool = shuffle([...DATA_SET]);
         boardState = [pool.pop()];
         currentItem = pool.pop();
         
-        stageArea.classList.remove('hidden');
-        boardContainer.classList.remove('hidden');
+        if (stageArea) stageArea.classList.remove('hidden');
+        if (boardContainer) boardContainer.classList.remove('hidden');
         renderStageCard();
         renderBoard();
     } else {
-        // Direct Sort: Shuffle all cards into the board state immediately
         phase = "SORTING";
         boardState = shuffle([...DATA_SET]);
         pool = [];
         currentItem = null;
 
-        stageArea.classList.add('hidden'); // Hide placement stage
-        boardContainer.classList.remove('hidden');
-        submitBtn.classList.remove('hidden');
+        if (stageArea) stageArea.classList.add('hidden');
+        if (boardContainer) boardContainer.classList.remove('hidden');
+        if (submitBtn) submitBtn.classList.remove('hidden');
         
-        feedbackEl.innerText = "Click or drag tiles to arrange them in order, then click Submit!";
+        if (feedbackEl) feedbackEl.innerText = "Click or drag tiles to arrange them in order, then click Submit!";
         renderBoard();
     }
 }
@@ -315,7 +301,7 @@ function animateAndSwap(clickedIndex, targetIndex) {
         swapItems(clickedIndex, targetIndex);
 
         checkedCorrectness = false; 
-        feedbackEl.innerText = "";
+        if (feedbackEl) feedbackEl.innerText = "";
         renderBoard();
         isSwapAnimating = false;
     }, 250); 
@@ -372,7 +358,7 @@ function setupTileDragAndDrop(targetEl, index) {
             if (isSwapAnimating) return;
             draggedIndex = index;
             e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', index);
+            e.dataTransfer.setData('text/plain', index.toString());
             setTimeout(() => targetEl.style.opacity = '0.5', 0);
         });
 
@@ -405,16 +391,12 @@ function setupTileDragAndDrop(targetEl, index) {
                 swapItems(draggedIndex, index);
 
                 checkedCorrectness = false;
-                feedbackEl.innerText = "";
+                if (feedbackEl) feedbackEl.innerText = "";
                 renderBoard();
             }
         });
     }
 }
-
-// ==========================================
-// EVALUATION
-// ==========================================
 
 // ==========================================
 // EVALUATION & SYNAPTIC ASSIST
@@ -423,12 +405,12 @@ function setupTileDragAndDrop(targetEl, index) {
 function evaluateBoard() {
     checkedCorrectness = true;
     newlyLockedIds.clear(); 
-    oneAwayTileIds.clear(); // Reset 1-away highlights
+    oneAwayTileIds.clear();
 
     const ascOrder = [...boardState].sort((a, b) => a.val - b.val);
     const descOrder = [...boardState].sort((a, b) => b.val - a.val);
 
-    // 1. Lock active direction on first evaluation (ignoring middle tile)
+    // Lock active direction on first evaluation
     if (!activeDirection) {
         const middleIndex = Math.floor(boardState.length / 2);
         let ascMatches = 0;
@@ -447,18 +429,15 @@ function evaluateBoard() {
         showToast(`🧭 Direction Locked: ${directionLabel}`, true);
     }
 
-    // 2. Target order based on locked direction
     const correctOrder = (activeDirection === "DESC") ? descOrder : ascOrder;
 
     let wrongCount = 0;
     let newlyFoundCorrect = 0;
 
-    // 3. First Pass: Lock exact matches & track wrong tiles
     boardState.forEach((item, i) => {
         const targetIndex = correctOrder.findIndex(target => target.id === item.id);
 
         if (targetIndex === i) {
-            // EXACT MATCH (GREEN / LOCKED)
             if (!correctTileIds.has(item.id)) {
                 currentScore += 100;
                 newlyFoundCorrect++;
@@ -477,7 +456,6 @@ function evaluateBoard() {
             }
             lockedIds.add(item.id);
         } else {
-            // INCORRECT TILE
             lockedIds.delete(item.id);
             correctTileIds.delete(item.id);
             wrongCount++;
@@ -497,9 +475,9 @@ function evaluateBoard() {
         updateScoreUI();
 
         showToast(`+1000 Puzzle Solved! 🎉`, true);
-        feedbackEl.innerText = `🎉 Perfect! All images are correctly ordered! Final Score: ${currentScore}`;
+        if (feedbackEl) feedbackEl.innerText = `🎉 Perfect! All images are correctly ordered! Final Score: ${currentScore}`;
         
-        submitBtn.classList.add('hidden');
+        if (submitBtn) submitBtn.classList.add('hidden');
         if (restartBtn) restartBtn.classList.remove('hidden');
         
         phase = "COMPLETE";
@@ -507,19 +485,15 @@ function evaluateBoard() {
         return;
     }
 
-    submitBtn.classList.remove('hidden');
+    if (submitBtn) submitBtn.classList.remove('hidden');
 
-    // 4. CHECK CONDITIONS IN ORDER:
-    // If wrongCount > 6, execute Synaptic Assist FIRST before rendering or applying yellow highlights
     if (wrongCount > 6) {
         const autoFixCount = 2;
         const dirText = activeDirection === "DESC" ? "High to Low" : "Low to High";
-        feedbackEl.innerText = `⚡ Synaptic Assist activated (${dirText})! Helping out with ${autoFixCount} tiles.`;
+        if (feedbackEl) feedbackEl.innerText = `⚡ Synaptic Assist activated (${dirText})! Helping out with ${autoFixCount} tiles.`;
         
-        // Assist will swap tiles and trigger final evaluation & yellow highlight after swapping
         autoCorrectTiles(correctOrder, autoFixCount);
     } else {
-        // 5. Apply Yellow Highlights ONLY when all other conditions are satisfied & no assist pending
         boardState.forEach((item, i) => {
             if (!correctTileIds.has(item.id)) {
                 const targetIndex = correctOrder.findIndex(target => target.id === item.id);
@@ -530,7 +504,7 @@ function evaluateBoard() {
         });
 
         const dirText = activeDirection === "DESC" ? "High to Low" : "Low to High";
-        feedbackEl.innerText = `Order locked (${dirText}). Click or drag unlocked tiles to swap them.`;
+        if (feedbackEl) feedbackEl.innerText = `Order locked (${dirText}). Click or drag unlocked tiles to swap them.`;
         renderBoard();
     }
 }
@@ -575,7 +549,6 @@ function autoCorrectTiles(correctOrder, countToFix) {
     }
 
     setTimeout(() => {
-        // Re-calculate yellow highlights AFTER Synaptic Assist finishes swapping
         oneAwayTileIds.clear();
         boardState.forEach((item, i) => {
             if (!correctTileIds.has(item.id)) {
@@ -595,6 +568,7 @@ function autoCorrectTiles(correctOrder, countToFix) {
 // ==========================================
 
 function renderBoard() {
+    if (!boardEl) return;
     boardEl.innerHTML = '';
 
     if (phase === "PLACEMENT") {
@@ -637,7 +611,8 @@ function renderBoard() {
                     tileClasses += ' incorrect';
                 }
 
-                tileSlot.innerHTML = `<div class="${tileClasses}"><img src="${item.img}" /></div>`;
+                // Updated to use img_path key
+                tileSlot.innerHTML = `<div class="${tileClasses}"><img src="${item.img_path}" /></div>`;
                 boardEl.appendChild(tileSlot);
             }
         }
@@ -675,7 +650,8 @@ function renderBoard() {
 
             const tile = document.createElement('div');
             tile.className = tileClasses;
-            tile.innerHTML = `<img src="${item.img}" />`;
+            // Updated to use img_path key
+            tile.innerHTML = `<img src="${item.img_path}" />`;
             
             if (!isLocked && phase === 'SORTING') {
                 tile.onclick = () => handleTileClickToSwap(index);
@@ -694,32 +670,32 @@ function renderBoard() {
 // SCROLLING & EVENT LISTENERS
 // ==========================================
 
-submitBtn.onclick = () => evaluateBoard();
+if (submitBtn) submitBtn.onclick = () => evaluateBoard();
 
-if (restartBtn) {
-    restartBtn.onclick = () => initGame();
+if (restartBtn) restartBtn.onclick = () => initGame();
+
+if (boardContainer) {
+    boardContainer.addEventListener('wheel', (e) => {
+        if (e.deltaY !== 0 || e.deltaX !== 0) {
+            e.preventDefault();
+
+            if (!isAnimating) {
+                targetScrollLeft = boardContainer.scrollLeft;
+            }
+
+            const scrollDelta = e.deltaY !== 0 ? e.deltaY : e.deltaX;
+            targetScrollLeft += scrollDelta * 1.5;
+
+            const maxScroll = boardContainer.scrollWidth - boardContainer.clientWidth;
+            targetScrollLeft = Math.max(0, Math.min(targetScrollLeft, maxScroll));
+
+            if (!isAnimating) {
+                isAnimating = true;
+                requestAnimationFrame(smoothScrollLoop);
+            }
+        }
+    }, { passive: false });
 }
-
-boardContainer.addEventListener('wheel', (e) => {
-    if (e.deltaY !== 0 || e.deltaX !== 0) {
-        e.preventDefault();
-
-        if (!isAnimating) {
-            targetScrollLeft = boardContainer.scrollLeft;
-        }
-
-        const scrollDelta = e.deltaY !== 0 ? e.deltaY : e.deltaX;
-        targetScrollLeft += scrollDelta * 1.5;
-
-        const maxScroll = boardContainer.scrollWidth - boardContainer.clientWidth;
-        targetScrollLeft = Math.max(0, Math.min(targetScrollLeft, maxScroll));
-
-        if (!isAnimating) {
-            isAnimating = true;
-            requestAnimationFrame(smoothScrollLoop);
-        }
-    }
-}, { passive: false });
 
 function smoothScrollLoop() {
     const diff = targetScrollLeft - boardContainer.scrollLeft;

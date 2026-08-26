@@ -10,14 +10,14 @@ app = Flask(__name__)
 def home():
     return render_template('switch.html')
 
-@app.route('/api/images')
+@app.route('/api/images', methods=['GET'])
 def send():
     neuron_num = np.random.randint(1, 33)
     score_threshold = 0.2
     grid_size = 6
     all_imgs = []
-    folder = (Path(f'imagesforsorting/images_190923_neuron{neuron_num}'))
-    for image in sorted(folder.iterdir(), reverse=True):
+    folder = Path(f'static/imagesforsorting/images_190923_neuron{neuron_num}')
+    for image in sorted(folder.iterdir(), reverse=False):
         if len(all_imgs) == grid_size:
             break
         all_imgs.append(str(image))
@@ -30,6 +30,7 @@ def send():
             image1 = cv2.imread(image)
             image2 = cv2.imread(prior_img)
             score = structural_similarity(image1, image2, channel_axis=-1, data_range=255)
+            print(score)
             if abs(score) <= score_threshold:
                 continue
             else:
@@ -38,17 +39,14 @@ def send():
     object_iterable = []
     for idx, file_path in enumerate(all_imgs):
         d = {}
-        d['img_id'] = idx
-        d['val'] = len(all_imgs) - 1
+        d['img_id'] = idx + 1
+        d['val'] = len(all_imgs) - idx
         d['img_path'] = file_path
         object_iterable.append(d)
 
-    final_payload = {str(idx+1): payload for idx, payload in enumerate(object_iterable)}
+    final_payload = [payload for payload in object_iterable]
 
     return jsonify(final_payload), 200
-            
-            
-
     
 if __name__ == "__main__":
     app.run(debug=True)
