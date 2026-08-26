@@ -3,13 +3,14 @@ import numpy as np
 import cv2
 from pathlib import Path
 from pprint import pprint
+import numpy as np
 
 neuron_num = np.random.randint(1, 33)
 score_threshold = 0.2
 grid_size = 6
 all_imgs = []
 folder = (Path(f'imagesforsorting/images_190923_neuron{neuron_num}'))
-for image in sorted(folder.iterdir(), reverse=True):
+for image in sorted(folder.iterdir(), reverse=False):
     if len(all_imgs) == grid_size:
         break
     all_imgs.append(str(image))
@@ -31,8 +32,8 @@ for image in sorted(folder.iterdir(), reverse=True):
 object_iterable = []
 for idx, file_path in enumerate(all_imgs):
     d = {}
-    d['img_id'] = idx
-    d['val'] = len(all_imgs) - 1 - idx
+    d['img_id'] = idx + 1
+    d['val'] = len(all_imgs) - idx
     d['img_path'] = file_path
     object_iterable.append(d)
 
