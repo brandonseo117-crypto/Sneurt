@@ -2,8 +2,20 @@ const howToPlayModal = document.getElementById('how-to-play-modal');
 const closeModalBtn = document.getElementById('close-modal-btn');
 const gotItBtn = document.getElementById('got-it-btn');
 
-function getImages() {
-    fetch('http://')
+async function getImages() {
+    const url = '/api/images'
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`);
+        }
+
+        const result = await response.json()
+        console.log(result)
+    }   
+    catch (error) {
+        console.error(error.message);
+    };
 }
 
 function openHowToPlayModal() {

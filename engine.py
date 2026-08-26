@@ -45,7 +45,7 @@ def send():
 
     final_payload = {str(idx+1): payload for idx, payload in enumerate(object_iterable)}
 
-    return jsonify(final_payload)
+    return jsonify(final_payload), 200
             
             
 
