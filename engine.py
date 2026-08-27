@@ -1,5 +1,5 @@
 from flask import Flask, render_template, jsonify
-from skimage.metrics import structural_similarity
+from skimage.metrics import peak_signal_noise_ratio
 import numpy as np
 import cv2
 from pathlib import Path
@@ -13,7 +13,7 @@ def home():
 @app.route('/api/images', methods=['GET'])
 def send():
     neuron_num = np.random.randint(1, 33)
-    score_threshold = 0.2
+    score_threshold = 40
     grid_size = 6
     all_imgs = []
     folder = Path(f'static/imagesforsorting/images_190923_neuron{neuron_num}')
@@ -29,7 +29,7 @@ def send():
             prior_img = all_imgs[prior_idx]
             image1 = cv2.imread(image)
             image2 = cv2.imread(prior_img)
-            score = structural_similarity(image1, image2, channel_axis=-1, data_range=255)
+            score = peak_signal_noise_ratio(image2, image1, data_range=255)
             print(score)
             if abs(score) <= score_threshold:
                 continue
@@ -39,7 +39,7 @@ def send():
     object_iterable = []
     for idx, file_path in enumerate(all_imgs):
         d = {}
-        d['img_id'] = idx + 1
+        d['id'] = idx + 1
         d['val'] = len(all_imgs) - idx
         d['img_path'] = file_path
         object_iterable.append(d)
