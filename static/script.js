@@ -19,6 +19,26 @@ async function getImages() {
     }
 }
 
+async function sendData() {
+    const url = '/api/receive'
+    const payload = {
+        'Longest streak': maxStreak
+    }
+    const response = await fetch(url, 
+        {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        }
+    );
+
+    const content = await response.json();
+    console.log(content)
+};
+
 function openHowToPlayModal() {
     if (howToPlayModal) {
         howToPlayModal.classList.remove('hidden');
@@ -82,6 +102,7 @@ let isSwapAnimating = false;
 // Score & Streak Tracking
 let currentScore = 0;
 let currentStreak = 0;
+let maxStreak = 0;
 
 // DOM Elements
 const restartBtn = document.getElementById('restart-btn');
@@ -447,6 +468,10 @@ function evaluateBoard() {
                     currentScore += 150;
                     showToast(`🔥 ${currentStreak} Streak! +150 Bonus!`, true);
                 }
+
+                if (currentStreak > maxStreak) {
+                    maxStreak = currentStreak
+                }
             }
 
             correctTileIds.add(item.id);
@@ -481,6 +506,7 @@ function evaluateBoard() {
         if (restartBtn) restartBtn.classList.remove('hidden');
         
         phase = "COMPLETE";
+        sendData();
         renderBoard();
         return;
     }

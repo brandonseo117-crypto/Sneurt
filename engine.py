@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 from skimage.metrics import peak_signal_noise_ratio
 import numpy as np
 import cv2
@@ -13,7 +13,7 @@ def home():
 @app.route('/api/images', methods=['GET'])
 def send():
     neuron_num = np.random.randint(1, 33)
-    score_threshold = 40
+    score_threshold = 11
     grid_size = 6
     all_imgs = []
     folder = Path(f'static/imagesforsorting/images_190923_neuron{neuron_num}')
@@ -47,6 +47,19 @@ def send():
     final_payload = [payload for payload in object_iterable]
 
     return jsonify(final_payload), 200
-    
+
+@app.route('/api/receive', methods=['POST'])
+def get_images():
+    data = request.get_json()
+
+    longest_streak = data['Longest streak']
+
+    return jsonify({
+        'status': 'success', 
+        'longest streak': longest_streak
+    }), 200
+
+
+
 if __name__ == "__main__":
     app.run(debug=True)
