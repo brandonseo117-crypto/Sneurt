@@ -79,30 +79,48 @@ function renderCurve(state) {
         svgEl.appendChild(makeEl('circle', { cx: svgX(p.x), cy: svgY(p.y), r: 3, class: 'bg-dot' }));
     });
 
-    if (state.current) {
-        state.current.slots.forEach(s => {
-            const half = POINT_SIZE / 2;
-            svgEl.appendChild(makeEl('rect', {
-                x: svgX(s.x) - half, y: svgY(s.y) - half,
-                width: POINT_SIZE, height: POINT_SIZE, rx: 4,
-                class: 'slot-rect', 'data-slot-id': s.id
-            }));
-        });
-    }
+    // Placed thumbnails and the current round's blank slots are real boxes
+    // (unlike the plain background dots), so when several of them land within
+    // a few pixels of each other -- common at the crowded low-activation end
+    // now that every real image is a candidate point -- nudge them apart
+    // left-to-right just for display. Their true x/y (and the dashed
+    // reference curve above) are untouched.
+    const boxItems = [
+        ...state.placed.map(p => ({ ...p, kind: 'placed' })),
+        ...(state.current ? state.current.slots.map(s => ({ ...s, kind: 'slot' })) : []),
+    ].sort((a, b) => a.x - b.x);
 
-    state.placed.forEach(p => {
-        const half = POINT_SIZE / 2;
-        const img = makeEl('image', {
-            x: svgX(p.x) - half, y: svgY(p.y) - half,
-            width: POINT_SIZE, height: POINT_SIZE
-        });
-        img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', p.img_path);
-        svgEl.appendChild(img);
-        svgEl.appendChild(makeEl('rect', {
-            x: svgX(p.x) - half, y: svgY(p.y) - half,
-            width: POINT_SIZE, height: POINT_SIZE, rx: 3,
-            class: 'placed-frame'
-        }));
+    const half = POINT_SIZE / 2;
+    const minGap = POINT_SIZE + 3;
+    let prevPx = -Infinity;
+    boxItems.forEach(item => {
+        let px = svgX(item.x);
+        if (px - prevPx < minGap) px = prevPx + minGap;
+        item.px = px;
+        prevPx = px;
+    });
+
+    boxItems.forEach(item => {
+        const py = svgY(item.y);
+        if (item.kind === 'slot') {
+            svgEl.appendChild(makeEl('rect', {
+                x: item.px - half, y: py - half,
+                width: POINT_SIZE, height: POINT_SIZE, rx: 4,
+                class: 'slot-rect', 'data-slot-id': item.id
+            }));
+        } else {
+            const img = makeEl('image', {
+                x: item.px - half, y: py - half,
+                width: POINT_SIZE, height: POINT_SIZE
+            });
+            img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', item.img_path);
+            svgEl.appendChild(img);
+            svgEl.appendChild(makeEl('rect', {
+                x: item.px - half, y: py - half,
+                width: POINT_SIZE, height: POINT_SIZE, rx: 3,
+                class: 'placed-frame'
+            }));
+        }
     });
 }
 
@@ -210,7 +228,7 @@ async function loadState() {
     if (submitBtn) submitBtn.classList.remove('hidden');
     currentOrder = state.current.images;
     renderOptions();
-    roundInfoEl.textContent = `Round ${state.current.round_index + 1} of ${state.current.total_rounds}`;
+    roundInfoEl.textContent = `${state.placed_count} of ${state.pool_size} images placed`;
     feedbackEl.textContent = 'Sort these three images from lowest to highest activation, left to right.';
     feedbackEl.className = 'feedback-msg';
 }

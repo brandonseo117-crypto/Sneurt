@@ -24,9 +24,8 @@ IMAGES_ROOT = APP_DIR.parent / "static" / "imagesforsorting"
 app = Flask(__name__)
 app.secret_key = "tuning-curve-sort-dev-key"
 
-ROUND_SIZE = 3          # images to sort per round
-MAX_ANCHORS = 15         # how many real images make up the full tuning curve
-BACKGROUND_POINTS = 40   # roughly how many decorative dots to draw
+ROUND_SIZE = 3   # images to sort per round
+LOW_WINDOW = 6   # each round is drawn randomly from this many of the lowest-activation images still left on the curve
 
 IMAGE_INDEX_RE = re.compile(r"(\d+)")
 
@@ -64,7 +63,12 @@ def to_image_url(path: Path) -> str:
     return f"/neuron_images/{path.parent.name}/{path.name}"
 
 
-def build_curve(neuron_id):
+def build_pool(neuron_id):
+    """
+    Every image for this neuron, low to high activation (by rank). Each one
+    starts out as a plain dot on the curve; sorting rounds are drawn from
+    this same pool, low end first.
+    """
     if not is_valid_neuron(neuron_id):
         return None
 
@@ -73,41 +77,23 @@ def build_curve(neuron_id):
     if n == 0:
         return None
 
-    anchor_count = min(MAX_ANCHORS, n)
-    if anchor_count > 1:
-        anchor_positions = sorted(set(
-            round(i * (n - 1) / (anchor_count - 1)) for i in range(anchor_count)
-        ))
-    else:
-        anchor_positions = [0]
-
-    denom = max(len(anchor_positions) - 1, 1)
-    anchors = []
-    for rank, file_idx in enumerate(anchor_positions):
+    denom = max(n - 1, 1)
+    points = []
+    for rank, f in enumerate(files):
         x = rank / denom
-        anchors.append({
-            "id": f"{neuron_id}:{file_idx}",
-            "img_path": to_image_url(files[file_idx]),
+        points.append({
+            "id": f"{neuron_id}:{image_rank(f)}",
+            "img_path": to_image_url(f),
             "x": round(x, 4),
             "y": round(activation_proxy(x), 4),
         })
-
-    stride = max(1, n // BACKGROUND_POINTS)
-    anchor_idx_set = set(anchor_positions)
-    background = []
-    for i in range(0, n, stride):
-        if i in anchor_idx_set:
-            continue
-        x = i / (n - 1) if n > 1 else 0
-        background.append({"x": round(x, 4), "y": round(activation_proxy(x), 4)})
-
-    return {"anchors": anchors, "background": background}
+    return points
 
 
 def get_state(neuron_id):
     state = session.get("game")
     if not state or state.get("neuron_id") != neuron_id:
-        state = {"neuron_id": neuron_id, "round_index": 0, "placed_anchor_ids": []}
+        state = {"neuron_id": neuron_id, "placed_ids": [], "current_round_ids": None}
         session["game"] = state
     return state
 
@@ -116,9 +102,19 @@ def save_state(state):
     session["game"] = state
 
 
-def current_round_anchors(anchors, round_index):
-    start = round_index * ROUND_SIZE
-    return anchors[start:start + ROUND_SIZE]
+def pick_round_ids(points, placed_ids):
+    """
+    Random ROUND_SIZE sample drawn from the lowest LOW_WINDOW images that
+    haven't been placed yet -- points is already sorted low to high, so
+    "the pool of dots left on the curve" and "the lowest activation ones"
+    are the same slice, just randomized for which exact ones show up.
+    """
+    placed_set = set(placed_ids)
+    remaining_ids = [p["id"] for p in points if p["id"] not in placed_set]
+    if len(remaining_ids) < ROUND_SIZE:
+        return None
+    window = remaining_ids[:min(LOW_WINDOW, len(remaining_ids))]
+    return random.sample(window, ROUND_SIZE)
 
 
 @app.route("/")
@@ -138,39 +134,37 @@ def neuron_image(neuron_id, filename):
 @app.route("/api/state")
 def api_state():
     neuron_id = request.args.get("neuron", "")
-    curve = build_curve(neuron_id)
-    if curve is None:
+    points = build_pool(neuron_id)
+    if points is None:
         return jsonify({"error": "unknown neuron"}), 404
 
     state = get_state(neuron_id)
-    anchors = curve["anchors"]
-    total_rounds = max(1, -(-len(anchors) // ROUND_SIZE))
+    by_id = {p["id"]: p for p in points}
 
-    placed_ids = set(state["placed_anchor_ids"])
-    current_ids_in_play = set()
+    if state["current_round_ids"] is None:
+        state["current_round_ids"] = pick_round_ids(points, state["placed_ids"])
+        save_state(state)
 
-    round_index = state["round_index"]
-    round_anchors = current_round_anchors(anchors, round_index)
-    done = len(round_anchors) == 0
+    placed_ids = set(state["placed_ids"])
+    current_round_ids = state["current_round_ids"] or []
+    current_ids = set(current_round_ids)
+
+    placed = [by_id[pid] for pid in state["placed_ids"] if pid in by_id]
+    background = [
+        {"x": p["x"], "y": p["y"]}
+        for p in points
+        if p["id"] not in placed_ids and p["id"] not in current_ids
+    ]
 
     current = None
-    if not done:
-        current_ids_in_play = {a["id"] for a in round_anchors}
-        shuffled = round_anchors[:]
+    if current_round_ids:
+        round_points = [by_id[pid] for pid in current_round_ids]
+        shuffled = round_points[:]
         random.shuffle(shuffled)
         current = {
-            "round_index": round_index,
-            "total_rounds": total_rounds,
-            "slots": [{"id": a["id"], "x": a["x"], "y": a["y"]} for a in round_anchors],
-            "images": [{"id": a["id"], "img_path": a["img_path"]} for a in shuffled],
+            "slots": [{"id": p["id"], "x": p["x"], "y": p["y"]} for p in round_points],
+            "images": [{"id": p["id"], "img_path": p["img_path"]} for p in shuffled],
         }
-
-    placed = [a for a in anchors if a["id"] in placed_ids]
-    pending_dots = [
-        {"x": a["x"], "y": a["y"]}
-        for a in anchors
-        if a["id"] not in placed_ids and a["id"] not in current_ids_in_play
-    ]
 
     neuron_number_match = re.search(r"neuron(\d+)", neuron_id)
     neuron_number = neuron_number_match.group(1) if neuron_number_match else "?"
@@ -179,10 +173,12 @@ def api_state():
         "neuron_id": neuron_id,
         "neurons": neuron_folders(),
         "neuron_number": neuron_number,
-        "background": curve["background"] + pending_dots,
+        "background": background,
         "placed": placed,
         "current": current,
-        "done": done,
+        "placed_count": len(state["placed_ids"]),
+        "pool_size": len(points),
+        "done": current is None,
     })
 
 
@@ -192,18 +188,18 @@ def api_submit():
     neuron_id = data.get("neuron", "")
     order = data.get("order", [])
 
-    curve = build_curve(neuron_id)
-    if curve is None:
+    points = build_pool(neuron_id)
+    if points is None:
         return jsonify({"error": "unknown neuron"}), 404
 
     state = get_state(neuron_id)
-    anchors = curve["anchors"]
-    round_anchors = current_round_anchors(anchors, state["round_index"])
-
-    if not round_anchors:
+    round_ids = state.get("current_round_ids")
+    if not round_ids:
         return jsonify({"error": "no active round"}), 400
 
-    correct_order = [a["id"] for a in round_anchors]
+    by_id = {p["id"]: p for p in points}
+    correct_order = sorted(round_ids, key=lambda pid: by_id[pid]["x"])
+
     positions_correct = [
         i < len(order) and order[i] == correct_order[i]
         for i in range(len(correct_order))
@@ -211,8 +207,8 @@ def api_submit():
     is_correct = len(order) == len(correct_order) and all(positions_correct)
 
     if is_correct:
-        state["placed_anchor_ids"].extend(correct_order)
-        state["round_index"] += 1
+        state["placed_ids"].extend(correct_order)
+        state["current_round_ids"] = None
         save_state(state)
 
     return jsonify({
