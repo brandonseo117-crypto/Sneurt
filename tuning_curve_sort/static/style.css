@@ -86,7 +86,7 @@ body {
 
 #curve-svg {
   width: 100%;
-  height: 340px;
+  height: 380px;
   display: block;
 }
 
@@ -107,6 +107,20 @@ body {
   stroke-width: 1.5;
   stroke-dasharray: 4 4;
   opacity: 0.6;
+}
+
+.row-overflow-label {
+  font-size: 11px;
+  fill: #0a192f;
+  font-style: italic;
+  opacity: 0.65;
+}
+
+.connector-line {
+  stroke: #0a192f;
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+  opacity: 0.55;
 }
 
 .bg-dot {

@@ -1,10 +1,17 @@
 const SVG_NS = 'http://www.w3.org/2000/svg';
-const MARGIN = { left: 50, right: 20, top: 20, bottom: 40 };
+// The curve itself lives above AXIS_Y; images (both placed and the current
+// round's blanks) live in a single row below the x-axis, not on the curve
+// line -- otherwise crowded/nudged boxes stop lining up with the curve they
+// represent. AXIS_Y is the boundary between the two.
+const MARGIN = { left: 50, right: 20, top: 20, bottom: 90 };
 const VB_W = 480;
-const VB_H = 340;
+const VB_H = 380;
 const PLOT_W = VB_W - MARGIN.left - MARGIN.right;
 const PLOT_H = VB_H - MARGIN.top - MARGIN.bottom;
+const AXIS_Y = MARGIN.top + PLOT_H;
 const POINT_SIZE = 22;
+const ROW_GAP = 14;
+const ROW_Y = AXIS_Y + ROW_GAP + POINT_SIZE / 2;
 
 const neuronPicker = document.getElementById('neuron-picker');
 const svgEl = document.getElementById('curve-svg');
@@ -42,11 +49,11 @@ function renderCurve(state) {
     svgEl.innerHTML = '';
 
     svgEl.appendChild(makeEl('line', {
-        x1: MARGIN.left, y1: MARGIN.top, x2: MARGIN.left, y2: MARGIN.top + PLOT_H,
+        x1: MARGIN.left, y1: MARGIN.top, x2: MARGIN.left, y2: AXIS_Y,
         class: 'axis-line'
     }));
     svgEl.appendChild(makeEl('line', {
-        x1: MARGIN.left, y1: MARGIN.top + PLOT_H, x2: MARGIN.left + PLOT_W, y2: MARGIN.top + PLOT_H,
+        x1: MARGIN.left, y1: AXIS_Y, x2: MARGIN.left + PLOT_W, y2: AXIS_Y,
         class: 'axis-line'
     }));
 
@@ -63,6 +70,8 @@ function renderCurve(state) {
     xLabel.textContent = `Feature neuron ${state.neuron_number} responds to`;
     svgEl.appendChild(xLabel);
 
+    // Dashed reference curve, drawn through everything's TRUE x/y (never the
+    // nudged row position below), so it always reflects the real shape.
     const referencePoints = [...state.background];
     state.placed.forEach(p => referencePoints.push({ x: p.x, y: p.y }));
     if (state.current) state.current.slots.forEach(s => referencePoints.push({ x: s.x, y: s.y }));
@@ -79,44 +88,71 @@ function renderCurve(state) {
         svgEl.appendChild(makeEl('circle', { cx: svgX(p.x), cy: svgY(p.y), r: 3, class: 'bg-dot' }));
     });
 
-    // Placed thumbnails and the current round's blank slots are real boxes
-    // (unlike the plain background dots), so when several of them land within
-    // a few pixels of each other -- common at the crowded low-activation end
-    // now that every real image is a candidate point -- nudge them apart
-    // left-to-right just for display. Their true x/y (and the dashed
-    // reference curve above) are untouched.
-    const boxItems = [
-        ...state.placed.map(p => ({ ...p, kind: 'placed' })),
+    // Placed thumbnails and the current round's blank slots all live in one
+    // row below the x-axis instead of directly on the curve -- otherwise,
+    // once several of them need nudging apart for legibility (common at the
+    // crowded low-activation end now that every real image is a candidate
+    // point), they stop lining up with the curve line itself. Their row
+    // x position is nudged only for spacing; a connector line for the
+    // current (dotted) ones shows where they'd truly sit on the curve.
+    //
+    // The row has a fixed pixel budget, but placed images accumulate without
+    // bound over a playthrough, so only the most recently placed ones are
+    // shown (recent = nearest the active frontier, which is what matters);
+    // older ones are summarized with a "+N earlier" label instead of being
+    // squeezed or silently clipped.
+    const half = POINT_SIZE / 2;
+    const minGap = POINT_SIZE + 3;
+    const currentCount = state.current ? state.current.slots.length : 0;
+    const maxPlacedShown = Math.max(0, Math.floor(PLOT_W / minGap) - currentCount);
+    const hiddenPlacedCount = Math.max(0, state.placed.length - maxPlacedShown);
+    const visiblePlaced = state.placed.slice(hiddenPlacedCount);
+
+    const rowItems = [
+        ...visiblePlaced.map(p => ({ ...p, kind: 'placed' })),
         ...(state.current ? state.current.slots.map(s => ({ ...s, kind: 'slot' })) : []),
     ].sort((a, b) => a.x - b.x);
 
-    const half = POINT_SIZE / 2;
-    const minGap = POINT_SIZE + 3;
-    let prevPx = -Infinity;
-    boxItems.forEach(item => {
+    let prevPx = MARGIN.left - minGap;
+    if (hiddenPlacedCount > 0) {
+        svgEl.appendChild(makeEl('text', {
+            x: MARGIN.left, y: ROW_Y + 4, class: 'row-overflow-label'
+        })).textContent = `+${hiddenPlacedCount} earlier`;
+        prevPx = MARGIN.left + 58;
+    }
+    rowItems.forEach(item => {
         let px = svgX(item.x);
-        if (px - prevPx < minGap) px = prevPx + minGap;
+        if (px < prevPx + minGap) px = prevPx + minGap;
         item.px = px;
         prevPx = px;
     });
 
-    boxItems.forEach(item => {
-        const py = svgY(item.y);
+    rowItems.forEach(item => {
+        if (item.kind === 'slot') {
+            svgEl.appendChild(makeEl('line', {
+                x1: item.px, y1: ROW_Y - half,
+                x2: svgX(item.x), y2: svgY(item.y),
+                class: 'connector-line'
+            }));
+        }
+    });
+
+    rowItems.forEach(item => {
         if (item.kind === 'slot') {
             svgEl.appendChild(makeEl('rect', {
-                x: item.px - half, y: py - half,
+                x: item.px - half, y: ROW_Y - half,
                 width: POINT_SIZE, height: POINT_SIZE, rx: 4,
                 class: 'slot-rect', 'data-slot-id': item.id
             }));
         } else {
             const img = makeEl('image', {
-                x: item.px - half, y: py - half,
+                x: item.px - half, y: ROW_Y - half,
                 width: POINT_SIZE, height: POINT_SIZE
             });
             img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', item.img_path);
             svgEl.appendChild(img);
             svgEl.appendChild(makeEl('rect', {
-                x: item.px - half, y: py - half,
+                x: item.px - half, y: ROW_Y - half,
                 width: POINT_SIZE, height: POINT_SIZE, rx: 3,
                 class: 'placed-frame'
             }));
