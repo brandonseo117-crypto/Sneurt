@@ -1,0 +1,254 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #ffea96;
+  color: #0a192f;
+  margin: 0;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.app-header {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 16px;
+  margin-bottom: 8px;
+  border-bottom: 2px solid #080064;
+}
+
+.app-header h1 {
+  font-size: 1.6rem;
+  margin: 0;
+}
+
+.neuron-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.neuron-select select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #0a192f;
+  background-color: #fffbe6;
+  font-size: 0.95rem;
+}
+
+.feedback-msg {
+  max-width: 900px;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 600;
+  min-height: 26px;
+  margin: 4px 0 20px 0;
+}
+
+.feedback-msg.correct {
+  color: #1e7e34;
+}
+
+.feedback-msg.incorrect {
+  color: #c0392b;
+}
+
+.game-layout {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  gap: 28px;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.curve-panel {
+  flex: 1 1 480px;
+  background-color: #f9e9c1;
+  border: 2px solid #0a192f;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 6px 16px rgba(10, 25, 47, 0.08);
+  transition: transform 0.35s ease;
+}
+
+.curve-panel.expand-pulse {
+  transform: scale(1.02);
+}
+
+#curve-svg {
+  width: 100%;
+  height: 340px;
+  display: block;
+}
+
+.axis-line {
+  stroke: #0a192f;
+  stroke-width: 2;
+}
+
+.axis-label {
+  font-size: 11px;
+  fill: #0a192f;
+  font-weight: 600;
+}
+
+.curve-path {
+  fill: none;
+  stroke: #6c757d;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+  opacity: 0.6;
+}
+
+.bg-dot {
+  fill: #8d99ae;
+  opacity: 0.55;
+}
+
+.slot-rect {
+  fill: #ffedbc;
+  stroke: #0a192f;
+  stroke-width: 2;
+  stroke-dasharray: 5 3;
+  rx: 4;
+}
+
+.placed-frame {
+  stroke: #28a745;
+  stroke-width: 2.5;
+  fill: none;
+  rx: 3;
+}
+
+.sort-panel {
+  flex: 1 1 320px;
+  background-color: #f9e9c1;
+  border: 2px solid #0a192f;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 6px 16px rgba(10, 25, 47, 0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.sort-panel h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.15rem;
+  text-align: center;
+}
+
+.options-grid {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-bottom: 20px;
+  min-height: 110px;
+}
+
+.option-tile {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  border: 3px solid #0a192f;
+  background-color: #f7f3e9;
+  box-shadow: 0 4px 8px rgba(10, 25, 47, 0.15);
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, opacity 0.2s ease;
+}
+
+.option-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.option-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(10, 25, 47, 0.2);
+}
+
+.option-tile.correct-pos {
+  border-color: #28a745;
+}
+
+.option-tile.wrong-pos {
+  border-color: #dc3545;
+}
+
+.button-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.submit-btn, .reset-btn {
+  border: 2px solid #0a192f;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.submit-btn {
+  background-color: #fffeae;
+  color: #000e66;
+}
+
+.submit-btn:hover {
+  background-color: #fff1cd;
+}
+
+.reset-btn {
+  background-color: #f7f3e9;
+  color: #0a192f;
+}
+
+.reset-btn:hover {
+  background-color: #ffe0e0;
+}
+
+.round-info {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.fly-clone {
+  position: fixed;
+  z-index: 500;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 3px solid #28a745;
+  pointer-events: none;
+  transition: left 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
+              top 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
+              width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
+              height 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.done-banner {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #1e7e34;
+  margin-top: 20px;
+}
+
+.hidden {
+  display: none !important;
+}

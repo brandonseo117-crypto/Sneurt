@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tuning Curve Sort</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Tuning Curve Sort</h1>
+      <div class="neuron-select">
+        <label for="neuron-picker">Neuron:</label>
+        <select id="neuron-picker">
+          {% for n in neurons %}
+          <option value="{{ n }}" {% if n == default_neuron %}selected{% endif %}>{{ n }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </header>
+
+    <p id="feedback" class="feedback-msg">Sort the three images below from lowest to highest activation, low to high, left to right.</p>
+
+    <main class="game-layout">
+      <section class="curve-panel">
+        <svg id="curve-svg" viewBox="0 0 480 340" preserveAspectRatio="xMidYMid meet"></svg>
+      </section>
+
+      <section class="sort-panel">
+        <h2>Sort these images</h2>
+        <div id="options-grid" class="options-grid"></div>
+        <div class="button-row">
+          <button id="submit-btn" class="submit-btn">Submit</button>
+          <button id="reset-btn" class="reset-btn">Reset Neuron</button>
+        </div>
+        <p id="round-info" class="round-info"></p>
+      </section>
+    </main>
+
+    <script src="/static/script.js"></script>
+  </body>
+</html>

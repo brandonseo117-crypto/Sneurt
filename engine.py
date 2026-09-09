@@ -12,14 +12,16 @@ def home():
 
 @app.route('/api/images', methods=['GET'])
 def send():
-    neuron_num = np.random.randint(1, 33)
-    score_threshold = 11
-    grid_size = 6
+    neuron_num = 9
+    score_threshold = 10000000
+    grid_size = 5
     all_imgs = []
     folder = Path(f'static/imagesforsorting/images_190923_neuron{neuron_num}')
-    for image in sorted(folder.iterdir(), reverse=False):
+    for idx, image in enumerate(sorted(folder.iterdir(), reverse=True)):
         if len(all_imgs) == grid_size:
             break
+        if not idx % 40 == 0:
+            continue
         all_imgs.append(str(image))
         img_index = all_imgs.index(str(image))
         if img_index == 0:
